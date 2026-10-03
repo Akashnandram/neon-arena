@@ -52,6 +52,12 @@
     <div class="card">
       <h1>NEON<br>ARENA</h1>
       <p class="tagline">How many waves can you survive?</p>
+      <div id="difficulty" class="difficulty" role="radiogroup" aria-label="Difficulty">
+        <button role="radio" data-diff="easy">EASY</button>
+        <button role="radio" data-diff="normal">NORMAL</button>
+        <button role="radio" data-diff="hard">HARD</button>
+      </div>
+      <p class="diff-desc" id="diffDesc"></p>
       <button class="big" id="playBtn">PLAY</button>
       <p class="best" id="bestText"></p>
       <div class="controls desktop-only">
@@ -98,6 +104,7 @@
       <p class="best" id="overBest"></p>
       <button class="big" id="againBtn">PLAY AGAIN</button>
       <button class="secondary" id="shareBtn">Share score</button>
+      <button class="secondary" id="menuBtn">Change difficulty</button>
     </div>
   </section>
 

@@ -193,6 +193,22 @@ button.big, button.secondary {
 button.big { border: none; background: linear-gradient(90deg, var(--cyan), var(--pink)); color: #050816; }
 button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); font-size: 15px; }
 
+.difficulty { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.difficulty button {
+  padding: 10px 0;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+.difficulty button[aria-checked="true"] { border-color: var(--cyan); color: var(--cyan); background: rgba(0, 240, 255, 0.1); }
+.difficulty button[data-diff="hard"][aria-checked="true"] { border-color: var(--pink); color: var(--pink); background: rgba(255, 46, 136, 0.1); }
+.diff-desc { color: var(--muted); font-size: 13px; margin: 8px 0 4px; min-height: 1.2em; }
+
 .controls { margin-top: 16px; display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
 kbd {
   background: #1a2247;

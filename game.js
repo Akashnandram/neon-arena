@@ -49,6 +49,13 @@ const UPGRADES = [
     when: () => player.hp < player.maxHp * 0.7, apply: () => heal(player.maxHp) },
 ];
 
+// Multipliers applied on top of the base numbers above. Hard = the original balance.
+const DIFFICULTIES = {
+  easy:   { label: 'Easy',   desc: 'Relaxed – more health, slower enemies',   playerHp: 150, enemyHp: 0.7,  enemyDmg: 0.5,  enemySpeed: 0.85, spawn: 1.35, bulletSpeed: 0.8, fire: 1.4, waveHeal: 30, score: 0.75 },
+  normal: { label: 'Normal', desc: 'Balanced challenge',                       playerHp: 120, enemyHp: 0.85, enemyDmg: 0.65, enemySpeed: 0.92, spawn: 1.15, bulletSpeed: 0.85, fire: 1.3, waveHeal: 20, score: 1 },
+  hard:   { label: 'Hard',   desc: 'Tough enemies, x1.5 score',                playerHp: 100, enemyHp: 1,    enemyDmg: 1,    enemySpeed: 1,    spawn: 1,    bulletSpeed: 1,   fire: 1,   waveHeal: 15, score: 1.5 },
+};
+
 // ---------- helpers ----------
 
 const $ = (id) => document.getElementById(id);
@@ -316,12 +323,15 @@ let wave, spawnQueue, spawnTimer, waveClearTimer, score, kills, combo, comboTime
 let upgradeChoices = [];
 let upgradeLevels = {};
 let nextId = 1;
-let best = storageGet('neon-best', { score: 0, wave: 0 });
+let difficulty = DIFFICULTIES[storageGet('neon-difficulty', 'normal')] ? storageGet('neon-difficulty', 'normal') : 'normal';
+let diff = DIFFICULTIES[difficulty];
+const bests = storageGet('neon-bests', null) || { hard: storageGet('neon-best', { score: 0, wave: 0 }) };
+const bestFor = (d) => bests[d] || { score: 0, wave: 0 };
 
 function resetGame() {
   player = {
     x: ARENA.w / 2, y: ARENA.h / 2, r: 17,
-    hp: 100, maxHp: 100, angle: 0,
+    hp: diff.playerHp, maxHp: diff.playerHp, angle: 0,
     weapon: 'pistol', ammo: Infinity, fireCd: 0,
     invuln: 0, dashTime: 0, dashCd: 0, dashDir: { x: 1, y: 0 },
     kx: 0, ky: 0,
@@ -345,6 +355,7 @@ function showOnly(id) {
 
 function startGame() {
   initAudio();
+  diff = DIFFICULTIES[difficulty];
   resetGame();
   state = 'playing';
   showOnly(null);
@@ -408,16 +419,16 @@ function updateSpawning(dt) {
   const type = spawnQueue.shift();
   const pos = spawnPosition();
   warnings.push({ type, x: pos.x, y: pos.y, t: type === 'boss' ? 1.4 : 0.8 });
-  spawnTimer = Math.max(0.28, 1.1 - wave * 0.05);
+  spawnTimer = Math.max(0.28, 1.1 - wave * 0.05) * diff.spawn;
 }
 
 function spawnEnemy(type, x, y) {
   const t = ENEMIES[type];
   const hpScale = type === 'boss' ? wave / 5 : 1 + 0.12 * (wave - 1);
-  const hp = Math.round(t.hp * hpScale);
+  const hp = Math.round(t.hp * hpScale * diff.enemyHp);
   enemies.push({
     id: nextId++, type, x, y, r: t.r,
-    hp, maxHp: hp, speed: t.speed * (1 + Math.min(0.3, wave * 0.015)),
+    hp, maxHp: hp, speed: t.speed * (1 + Math.min(0.3, wave * 0.015)) * diff.enemySpeed,
     kx: 0, ky: 0, flash: 0, angle: 0,
     fireCd: rand(1, 2.5), pattern: 0, strafe: Math.random() < 0.5 ? -1 : 1, wobble: rand(0, 10),
   });
@@ -433,8 +444,8 @@ function checkWaveCleared(dt) {
   if (!spawnQueue.length && !warnings.length && !enemies.length) {
     waveClearTimer = 1.4;
     enemyBullets = [];
-    heal(15);
-    floatText(player.x, player.y - 30, '+15 HP', '#39ff88');
+    heal(diff.waveHeal);
+    floatText(player.x, player.y - 30, `+${diff.waveHeal} HP`, '#39ff88');
     banner('WAVE CLEARED');
     sfx('wave');
   }
@@ -583,7 +594,7 @@ function shoot() {
 function hurtPlayer(dmg, fromX, fromY) {
   const p = player;
   if (p.invuln > 0 || p.dashTime > 0 || state !== 'playing') return;
-  p.hp -= dmg;
+  p.hp -= dmg * diff.enemyDmg;
   p.invuln = 0.7;
   hurtFlash = 0.35;
   shake(12);
@@ -619,7 +630,7 @@ function updateEnemies(dt) {
       e.fireCd -= dt;
       if (e.fireCd <= 0 && d < 680) {
         fireEnemyBullet(e, e.angle, 330, t.dmg);
-        e.fireCd = rand(1.6, 2.4);
+        e.fireCd = rand(1.6, 2.4) * diff.fire;
       }
     } else if (e.type === 'boss') {
       e.fireCd -= dt;
@@ -633,7 +644,7 @@ function updateEnemies(dt) {
         e.pattern++;
         // Fires faster when hurt, and later bosses fire faster overall.
         const base = Math.max(1.6, 2.6 - (wave / 5 - 1) * 0.3);
-        e.fireCd = e.hp < e.maxHp / 2 ? base * 0.65 : base;
+        e.fireCd = (e.hp < e.maxHp / 2 ? base * 0.65 : base) * diff.fire;
       }
     }
 
@@ -678,7 +689,7 @@ function updateEnemies(dt) {
 function fireEnemyBullet(e, angle, speed, dmg) {
   enemyBullets.push({
     x: e.x + Math.cos(angle) * e.r, y: e.y + Math.sin(angle) * e.r,
-    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+    vx: Math.cos(angle) * speed * diff.bulletSpeed, vy: Math.sin(angle) * speed * diff.bulletSpeed,
     r: e.type === 'boss' ? 9 : 7, dmg, life: 4,
   });
   sfx('enemyShot');
@@ -702,7 +713,7 @@ function killEnemy(e) {
   combo++;
   comboTimer = 2.5;
   const mult = comboMultiplier();
-  const pts = Math.round(t.score * mult);
+  const pts = Math.round(t.score * mult * diff.score);
   score += pts;
   floatText(e.x, e.y - e.r, `+${pts}`, mult > 1 ? '#ffe66d' : '#ffffff');
   burst(e.x, e.y, t.color, e.type === 'boss' ? 80 : 18, e.type === 'boss' ? 600 : 320);
@@ -1205,22 +1216,23 @@ function gameOver() {
   shake(25);
   sfx('boom');
   $('dashBtn').hidden = true;
-  const isRecord = score > best.score;
-  best = { score: Math.max(best.score, score), wave: Math.max(best.wave, wave) };
-  storageSet('neon-best', best);
+  const prev = bestFor(difficulty);
+  const isRecord = score > prev.score;
+  const best = bests[difficulty] = { score: Math.max(prev.score, score), wave: Math.max(prev.wave, wave) };
+  storageSet('neon-bests', bests);
   setTimeout(() => {
     $('finalScore').textContent = score.toLocaleString();
     $('finalWave').textContent = wave;
     $('finalKills').textContent = kills;
     $('newRecord').hidden = !isRecord || score === 0;
-    $('overBest').textContent = `Best: ${best.score.toLocaleString()} · wave ${best.wave}`;
+    $('overBest').textContent = `${diff.label} best: ${best.score.toLocaleString()} · wave ${best.wave}`;
     showOnly('over');
   }, 1100);
 }
 
 async function shareScore() {
   const url = location.origin + location.pathname;
-  const text = `🔫 I survived to wave ${wave} with ${score.toLocaleString()} points in Neon Arena! Can you beat me?\n${url}`;
+  const text = `🔫 I survived to wave ${wave} on ${diff.label} with ${score.toLocaleString()} points in Neon Arena! Can you beat me?\n${url}`;
   if (navigator.share && touchMode) {
     try { await navigator.share({ text }); return; } catch { /* cancelled */ }
   }
@@ -1235,13 +1247,28 @@ async function shareScore() {
 // ---------- UI wiring ----------
 
 function updateMenuBest() {
-  $('bestText').textContent = best.score ? `Best: ${best.score.toLocaleString()} · wave ${best.wave}` : '';
+  const b = bestFor(difficulty);
+  $('bestText').textContent = b.score ? `${DIFFICULTIES[difficulty].label} best: ${b.score.toLocaleString()} · wave ${b.wave}` : '';
+}
+
+function selectDifficulty(d) {
+  difficulty = d;
+  storageSet('neon-difficulty', d);
+  for (const btn of document.querySelectorAll('#difficulty button')) {
+    btn.setAttribute('aria-checked', String(btn.dataset.diff === d));
+  }
+  $('diffDesc').textContent = DIFFICULTIES[d].desc;
+  updateMenuBest();
 }
 
 function updateMuteIcon() { $('muteBtn').textContent = muted ? '🔇' : '🔊'; }
 
 $('playBtn').addEventListener('click', startGame);
+for (const btn of document.querySelectorAll('#difficulty button')) {
+  btn.addEventListener('click', () => selectDifficulty(btn.dataset.diff));
+}
 $('againBtn').addEventListener('click', startGame);
+$('menuBtn').addEventListener('click', () => { state = 'menu'; selectDifficulty(difficulty); showOnly('menu'); });
 $('resumeBtn').addEventListener('click', togglePause);
 $('restartBtn').addEventListener('click', startGame);
 $('pauseBtn').addEventListener('click', togglePause);
@@ -1277,7 +1304,7 @@ function frame(now) {
 
 if (window.matchMedia('(pointer: coarse)').matches) enableTouchMode();
 resetGame();
-updateMenuBest();
+selectDifficulty(difficulty);
 updateMuteIcon();
 showOnly('menu');
 requestAnimationFrame(frame);
