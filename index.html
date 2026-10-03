@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Neon Arena – Top-Down Shooter</title>
+  <meta name="description" content="Survive waves of enemies in a neon arena. Grab weapons, pick upgrades, beat the boss. Free browser shooter." />
+  <meta name="theme-color" content="#070a14" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Neon Arena – how many waves can you survive?" />
+  <meta property="og:description" content="Fast top-down shooter in your browser. Weapons, upgrades, bosses. No download." />
+  <!-- TODO after deploy: make this an absolute URL, e.g. https://your-site.vercel.app/og-image.png -->
+  <meta property="og:image" content="og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔫</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <!-- In-game HUD -->
+  <div id="hud" hidden>
+    <div class="hud-left">
+      <div class="hp-bar"><div id="hpFill"></div><span id="hpText">100</span></div>
+      <div class="weapon"><span id="weaponName">Pistol</span> <span id="ammo">∞</span></div>
+      <div class="dash"><div id="dashFill"></div><span>DASH</span></div>
+    </div>
+    <div class="hud-center">
+      <div id="waveText">WAVE 1</div>
+      <div id="enemiesText"></div>
+      <div id="bossBar" hidden><div id="bossFill"></div><span>BOSS</span></div>
+    </div>
+    <div class="hud-right">
+      <div id="scoreText">0</div>
+      <div id="comboText"></div>
+    </div>
+  </div>
+
+  <div class="corner-buttons" id="cornerButtons" hidden>
+    <button id="muteBtn" aria-label="Toggle sound">🔊</button>
+    <button id="pauseBtn" aria-label="Pause">⏸</button>
+  </div>
+
+  <button id="dashBtn" hidden aria-label="Dash">💨</button>
+
+  <div id="banner"></div>
+
+  <!-- Start menu -->
+  <section class="overlay" id="menu">
+    <div class="card">
+      <h1>NEON<br>ARENA</h1>
+      <p class="tagline">How many waves can you survive?</p>
+      <button class="big" id="playBtn">PLAY</button>
+      <p class="best" id="bestText"></p>
+      <div class="controls desktop-only">
+        <div><kbd>WASD</kbd> move</div>
+        <div><kbd>Mouse</kbd> aim · <kbd>Click</kbd> shoot</div>
+        <div><kbd>Space</kbd> dash · <kbd>P</kbd> pause</div>
+      </div>
+      <div class="controls touch-only">
+        <div>Left thumb: <b>move</b></div>
+        <div>Right thumb: <b>aim &amp; shoot</b></div>
+        <div>💨 button: <b>dash</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Upgrade picker between waves -->
+  <section class="overlay" id="upgrade" hidden>
+    <div class="card wide">
+      <h2 id="upgradeTitle">WAVE CLEARED</h2>
+      <p class="tagline">Choose an upgrade</p>
+      <div id="upgradeChoices"></div>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section class="overlay" id="pause" hidden>
+    <div class="card">
+      <h2>PAUSED</h2>
+      <button class="big" id="resumeBtn">RESUME</button>
+      <button class="secondary" id="restartBtn">Restart</button>
+    </div>
+  </section>
+
+  <!-- Game over -->
+  <section class="overlay" id="over" hidden>
+    <div class="card">
+      <h2>GAME OVER</h2>
+      <p id="newRecord" class="record" hidden>🏆 NEW RECORD!</p>
+      <div class="final">
+        <div><b id="finalScore">0</b><span>Score</span></div>
+        <div><b id="finalWave">1</b><span>Wave</span></div>
+        <div><b id="finalKills">0</b><span>Kills</span></div>
+      </div>
+      <p class="best" id="overBest"></p>
+      <button class="big" id="againBtn">PLAY AGAIN</button>
+      <button class="secondary" id="shareBtn">Share score</button>
+    </div>
+  </section>
+
+  <div id="toast" role="status"></div>
+
+  <script src="game.js"></script>
+  <!-- Vercel Web Analytics (enable in the Vercel dashboard). Harmless elsewhere. -->
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
