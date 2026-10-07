@@ -26,11 +26,13 @@
       <div class="hp-bar"><div id="hpFill"></div><span id="hpText">100</span></div>
       <div class="weapon"><span id="weaponName">Pistol</span> <span id="ammo">∞</span></div>
       <div class="dash"><div id="dashFill"></div><span>DASH</span></div>
+      <div class="substats"><span id="killsText">0 kills</span> · <span id="timeText">0:00</span></div>
     </div>
     <div class="hud-center">
       <div id="waveText">WAVE 1</div>
+      <div class="progress"><div id="waveProgress"></div></div>
       <div id="enemiesText"></div>
-      <div id="bossBar" hidden><div id="bossFill"></div><span>BOSS</span></div>
+      <div id="bossBar" hidden><div id="bossFill"></div><span id="bossName">BOSS</span></div>
     </div>
     <div class="hud-right">
       <div id="scoreText">0</div>
@@ -60,10 +62,15 @@
       <p class="diff-desc" id="diffDesc"></p>
       <button class="big" id="playBtn">PLAY</button>
       <p class="best" id="bestText"></p>
+      <div class="settings-row">
+        <label><input type="checkbox" id="shakeToggle" checked /> Shake</label>
+        <label><input type="checkbox" id="autofireToggle" /> Auto-fire</label>
+        <label><input type="checkbox" id="flashToggle" checked /> Flash</label>
+      </div>
       <div class="controls desktop-only">
         <div><kbd>WASD</kbd> move</div>
         <div><kbd>Mouse</kbd> aim · <kbd>Click</kbd> shoot</div>
-        <div><kbd>Space</kbd> dash · <kbd>P</kbd> pause</div>
+        <div><kbd>Space</kbd> dash (damages!) · <kbd>E</kbd> drop weapon · <kbd>P</kbd> pause</div>
       </div>
       <div class="controls touch-only">
         <div>Left thumb: <b>move</b></div>
@@ -79,6 +86,11 @@
       <h2 id="upgradeTitle">WAVE CLEARED</h2>
       <p class="tagline">Choose an upgrade</p>
       <div id="upgradeChoices"></div>
+      <p class="build" id="buildRow"></p>
+      <div class="upgrade-actions">
+        <button class="secondary" id="rerollBtn"><span id="rerollLabel">Reroll</span></button>
+        <button class="secondary" id="skipBtn">Skip (+10 HP)</button>
+      </div>
     </div>
   </section>
 
@@ -86,8 +98,11 @@
   <section class="overlay" id="pause" hidden>
     <div class="card">
       <h2>PAUSED</h2>
+      <p class="build" id="pauseBuild"></p>
       <button class="big" id="resumeBtn">RESUME</button>
       <button class="secondary" id="restartBtn">Restart</button>
+      <button class="secondary" id="muteBtn2">🔊 Mute</button>
+      <button class="secondary" id="quitBtn">Quit to menu</button>
     </div>
   </section>
 
@@ -100,6 +115,11 @@
         <div><b id="finalScore">0</b><span>Score</span></div>
         <div><b id="finalWave">1</b><span>Wave</span></div>
         <div><b id="finalKills">0</b><span>Kills</span></div>
+      </div>
+      <div class="final small">
+        <div><b id="finalTime">0:00</b><span>Time</span></div>
+        <div><b id="finalCombo">x1</b><span>Combo</span></div>
+        <div><b id="finalAccuracy">0%</b><span>Accuracy</span></div>
       </div>
       <p class="best" id="overBest"></p>
       <button class="big" id="againBtn">PLAY AGAIN</button>
